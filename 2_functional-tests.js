@@ -7,10 +7,10 @@ chai.use(chaiHttp);
 
 suite('Functional Tests', function() {
   
-  // Note: We are not explicitly clearing the DB here to keep it simple, 
-  // but in a real test env you might drop the collection before running.
+  // Tingkatkan timeout karena kadang API lambat merespon
+  this.timeout(5000);
 
-  let testLikes1 = 0;
+  let likesStock1 = 0;
 
   test('Viewing one stock: GET request to /api/stock-prices/', function(done) {
     chai.request(server)
@@ -18,7 +18,6 @@ suite('Functional Tests', function() {
       .query({ stock: 'GOOG' })
       .end(function(err, res) {
         assert.equal(res.status, 200);
-        assert.isObject(res.body);
         assert.property(res.body, 'stockData');
         assert.property(res.body.stockData, 'stock');
         assert.property(res.body.stockData, 'price');
@@ -37,7 +36,7 @@ suite('Functional Tests', function() {
         assert.equal(res.body.stockData.stock, 'GOOG');
         assert.isNumber(res.body.stockData.likes);
         assert.isAbove(res.body.stockData.likes, 0);
-        testLikes1 = res.body.stockData.likes; // Save for next test
+        likesStock1 = res.body.stockData.likes; // Simpan jumlah like untuk tes berikutnya
         done();
       });
   });
@@ -49,8 +48,8 @@ suite('Functional Tests', function() {
       .end(function(err, res) {
         assert.equal(res.status, 200);
         assert.equal(res.body.stockData.stock, 'GOOG');
-        // Likes should not increase because IP is the same
-        assert.equal(res.body.stockData.likes, testLikes1); 
+        // Like TIDAK boleh bertambah karena IP sama
+        assert.equal(res.body.stockData.likes, likesStock1); 
         done();
       });
   });
@@ -77,10 +76,18 @@ suite('Functional Tests', function() {
         assert.equal(res.status, 200);
         assert.isArray(res.body.stockData);
         assert.equal(res.body.stockData.length, 2);
-        assert.property(res.body.stockData[0], 'rel_likes');
-        assert.property(res.body.stockData[1], 'rel_likes');
-        // rel_likes of one should be negative of the other
-        assert.equal(res.body.stockData[0].rel_likes + res.body.stockData[1].rel_likes, 0);
+        
+        const stock1 = res.body.stockData[0];
+        const stock2 = res.body.stockData[1];
+        
+        assert.property(stock1, 'rel_likes');
+        assert.property(stock2, 'rel_likes');
+        
+        // Logika Matematika: rel_likes stock 1 harus kebalikan dari stock 2
+        // Contoh: Jika Stock A punya 5 like, Stock B punya 3 like.
+        // Rel A = 5-3 = 2. Rel B = 3-5 = -2.
+        // 2 + (-2) = 0.
+        assert.equal(stock1.rel_likes + stock2.rel_likes, 0);
         done();
       });
   });

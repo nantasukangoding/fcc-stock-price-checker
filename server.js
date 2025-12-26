@@ -11,14 +11,13 @@ const runner = require('./test-runner');
 
 const app = express();
 
-// Security: Helmet Middleware
+// Security: Helmet Middleware (UPDATED STRICT VERSION)
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://code.jquery.com"], // Allow jQuery
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"]
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
     }
   },
   hidePoweredBy: true,
